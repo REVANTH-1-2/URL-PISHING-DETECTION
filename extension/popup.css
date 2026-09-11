@@ -1,0 +1,269 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  width: 350px;
+  background-color: #000000;
+  color: #f8fafc;
+  font-size: 13px;
+}
+
+.extension-container {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #1e293b;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  font-size: 20px;
+  background: rgba(59, 130, 246, 0.15);
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.subtitle {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.version-badge {
+  font-size: 10px;
+  background: #1e293b;
+  color: #38bdf8;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+/* URL Display Card */
+.url-card {
+  background: #09090b;
+  border: 1px solid #27272a;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.section-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  font-weight: 700;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.url-display {
+  font-size: 11px;
+  color: #cbd5e1;
+  word-break: break-all;
+  font-family: monospace;
+  max-height: 40px;
+  overflow-y: auto;
+}
+
+/* Scan Button */
+.btn-primary {
+  width: 100%;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Results Section */
+.results-card {
+  background: #09090b;
+  border: 1px solid #27272a;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.prediction-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.risk-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  border: 3px solid #3b82f6;
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.risk-score {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.risk-label {
+  font-size: 8px;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.status-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.badge {
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.badge-safe {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.badge-suspicious {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.badge-phishing {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.confidence-text {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+/* Lists & Boxes */
+.risk-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.risk-item {
+  font-size: 11px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(30, 41, 59, 0.5);
+  border-left: 3px solid #3b82f6;
+}
+
+.risk-item.high {
+  border-left-color: #ef4444;
+  color: #fca5a5;
+}
+
+.risk-item.medium {
+  border-left-color: #f59e0b;
+  color: #fde68a;
+}
+
+.risk-item.info {
+  border-left-color: #10b981;
+  color: #6ee7b7;
+}
+
+.recommendation-box {
+  font-size: 11px;
+  color: #cbd5e1;
+  background: rgba(15, 23, 42, 0.7);
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #1e293b;
+  line-height: 1.4;
+}
+
+/* Footer Settings */
+.footer {
+  padding-top: 8px;
+  border-top: 1px solid #1e293b;
+}
+
+.settings-details summary {
+  font-size: 10px;
+  color: #64748b;
+  cursor: pointer;
+  user-select: none;
+}
+
+.settings-body {
+  margin-top: 8px;
+}
+
+.api-input {
+  width: 100%;
+  background: #09090b;
+  border: 1px solid #27272a;
+  color: #f1f5f9;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+}

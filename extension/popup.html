@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepShield AI</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="extension-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="logo-icon">🛡️</div>
+        <div>
+          <h1 class="title">DeepShield AI</h1>
+          <span class="subtitle">Phishing Protection</span>
+        </div>
+      </div>
+      <span class="version-badge">v1.0</span>
+    </header>
+
+    <!-- Target URL Card -->
+    <div class="url-card">
+      <label class="section-label">Active Page URL</label>
+      <div class="url-display" id="urlDisplay">Loading current tab...</div>
+    </div>
+
+    <!-- Scan Button -->
+    <button id="scanBtn" class="btn-primary">
+      <span id="btnIcon">🔍</span> <span id="btnText">Scan Current Page</span>
+    </button>
+
+    <!-- Results Container (Hidden initially) -->
+    <div id="resultsCard" class="results-card hidden">
+      <div class="prediction-header">
+        <div class="risk-gauge">
+          <span id="riskScore" class="risk-score">0%</span>
+          <span class="risk-label">RISK</span>
+        </div>
+        <div class="status-info">
+          <div id="predictionBadge" class="badge badge-safe">SAFE</div>
+          <div id="confidenceText" class="confidence-text">Confidence: 99%</div>
+        </div>
+      </div>
+
+      <!-- Risk Factors -->
+      <div class="section-container">
+        <label class="section-label">XAI Risk Factors</label>
+        <ul id="riskFactorsList" class="risk-list">
+          <li class="risk-item info">No high-risk indicators detected on this domain.</li>
+        </ul>
+      </div>
+
+      <!-- Safety Recommendations -->
+      <div class="section-container">
+        <label class="section-label">Recommendations</label>
+        <div id="recommendationText" class="recommendation-box">
+          This URL appears safe for browsing.
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Footer -->
+    <footer class="footer">
+      <details class="settings-details">
+        <summary>⚙️ API Server Settings</summary>
+        <div class="settings-body">
+          <input type="text" id="apiInput" class="api-input" value="http://localhost:8000" placeholder="API Server URL">
+        </div>
+      </details>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

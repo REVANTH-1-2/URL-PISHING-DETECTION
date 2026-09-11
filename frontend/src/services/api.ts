@@ -1,7 +1,7 @@
 import { ScanResponse, AnalyticsOverview, ModelMetricDoc, AuthToken, User } from '../types';
 
 const getApiBase = () => {
-  if (typeof window !== 'undefined' && window.location.port === '5173') {
+  if (typeof window !== 'undefined' && (window.location.port === '3000' || window.location.port === '5173' || window.location.hostname === 'localhost')) {
     return 'http://127.0.0.1:8000/api';
   }
   return '/api';

@@ -1,8 +1,19 @@
 import { ScanResponse, AnalyticsOverview, ModelMetricDoc, AuthToken, User } from '../types';
 
 const getApiBase = () => {
-  if (typeof window !== 'undefined' && (window.location.port === '3000' || window.location.port === '5173' || window.location.hostname === 'localhost')) {
-    return 'http://127.0.0.1:8000/api';
+  if (import.meta.env.VITE_API_URL) {
+    const base = import.meta.env.VITE_API_URL.replace(/\/+$/, '');
+    return base.endsWith('/api') ? base : `${base}/api`;
+  }
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return 'http://127.0.0.1:8000/api';
+    }
+    if (host.includes('onrender.com')) {
+      const backendHost = host.replace('frontend', 'backend');
+      return `https://${backendHost}/api`;
+    }
   }
   return '/api';
 };

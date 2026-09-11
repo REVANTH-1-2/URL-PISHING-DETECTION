@@ -1,0 +1,32 @@
+[
+  {
+    "id": "sms_real_01",
+    "category": "Obvious Phishing",
+    "message": "URGENT: Your account is locked. Verify at http://bank-login.xyz",
+    "expected_label": "PHISHING"
+  },
+  {
+    "id": "sms_real_02",
+    "category": "Sophisticated Phishing - Account Verification",
+    "message": "Security Alert: Unusual sign-in attempt detected from IP 185.220.101.4. If this was not you, confirm your identity immediately at http://security-verify-account.click",
+    "expected_label": "PHISHING"
+  },
+  {
+    "id": "sms_real_03",
+    "category": "Sophisticated Phishing - Delivery Notification",
+    "message": "USPS: Your package #8942-US cannot be delivered due to incomplete delivery address. Please update your details within 12 hours: http://usps-tracking-portal.top",
+    "expected_label": "PHISHING"
+  },
+  {
+    "id": "sms_real_04",
+    "category": "Sophisticated Phishing - Password Reset",
+    "message": "Apple Security: A password reset request was initiated for your Apple ID. If you did not request this, secure your account at http://appleid-security-auth.info",
+    "expected_label": "PHISHING"
+  },
+  {
+    "id": "sms_real_05",
+    "category": "Clearly Legitimate",
+    "message": "Hey! Are we still meeting for lunch today at 12:30 PM?",
+    "expected_label": "SAFE"
+  }
+]

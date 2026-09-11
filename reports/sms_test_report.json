@@ -1,0 +1,29 @@
+{
+  "dataset": "SMS",
+  "selected_best_model": "Logistic Regression",
+  "test_samples": 837,
+  "unseen_test_metrics": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1_score": 1.0,
+    "roc_auc": 1.0,
+    "specificity": 1.0,
+    "false_positive_rate": 0.0,
+    "false_negative_rate": 0.0,
+    "confusion_matrix": {
+      "TN": 725,
+      "FP": 0,
+      "FN": 0,
+      "TP": 112
+    }
+  },
+  "overfitting_analysis": {
+    "train_f1": 1.0,
+    "val_f1": 1.0,
+    "test_f1": 1.0,
+    "is_overfitting": false,
+    "warning": null
+  },
+  "evaluation_date": "2026-07-27T09:47:00.484858"
+}

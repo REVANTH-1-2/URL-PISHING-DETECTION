@@ -1,0 +1,26 @@
+[
+  {
+    "id": "email_real_01",
+    "category": "Sophisticated Phishing - Bank Security Alert",
+    "sender": "security-alert@verify-chase.com",
+    "subject": "Action Required: Suspicious Direct Deposit Transaction",
+    "body": "Dear customer, We detected an unauthorized direct deposit authorization attempt on your account. To prevent temporary suspension of online services, please verify your credentials at http://verify-chase.com/auth",
+    "expected_label": "PHISHING"
+  },
+  {
+    "id": "email_real_02",
+    "category": "Sophisticated Phishing - Payment Failure",
+    "sender": "billing-support@netflix-renew.xyz",
+    "subject": "Your Netflix membership is on hold",
+    "body": "We were unable to process your recent monthly payment. Please update your payment details within 24 hours to avoid service interruption: http://netflix-renew.xyz/update",
+    "expected_label": "PHISHING"
+  },
+  {
+    "id": "email_real_03",
+    "category": "Clearly Legitimate",
+    "sender": "support@github.com",
+    "subject": "Personal Access Token Expiration Warning",
+    "body": "Hi developer, your personal access token 'deploy-key' will expire in 7 days. You can renew it in your GitHub settings.",
+    "expected_label": "SAFE"
+  }
+]

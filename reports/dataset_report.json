@@ -1,0 +1,40 @@
+{
+  "datasets": [
+    {
+      "name": "SMS Spam Collection / Phishing Dataset",
+      "total_samples": 5574,
+      "legitimate_samples": 4827,
+      "phishing_samples": 747,
+      "class_ratio": "86.6% Legitimate / 13.4% Spam",
+      "split": {
+        "train": 3901,
+        "validation": 836,
+        "test": 837
+      }
+    },
+    {
+      "name": "Phishing Email Dataset",
+      "total_samples": 4000,
+      "legitimate_samples": 2500,
+      "phishing_samples": 1500,
+      "class_ratio": "62.5% Legitimate / 37.5% Phishing",
+      "split": {
+        "train": 2800,
+        "validation": 600,
+        "test": 600
+      }
+    },
+    {
+      "name": "Phishing URL Dataset",
+      "total_samples": 6000,
+      "legitimate_samples": 3500,
+      "phishing_samples": 2500,
+      "class_ratio": "58.3% Legitimate / 41.7% Phishing",
+      "split": {
+        "train": 4199,
+        "validation": 901,
+        "test": 900
+      }
+    }
+  ]
+}

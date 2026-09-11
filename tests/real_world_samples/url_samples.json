@@ -1,0 +1,20 @@
+[
+  {
+    "id": "url_real_01",
+    "category": "IP-based Phishing URL",
+    "url": "http://192.168.1.1/banking/login.php?verify=1",
+    "expected_label": "PHISHING"
+  },
+  {
+    "id": "url_real_02",
+    "category": "Suspicious TLD & Brand Mimicry",
+    "url": "http://appleid.apple.com.verify-access-locked.top/login",
+    "expected_label": "PHISHING"
+  },
+  {
+    "id": "url_real_03",
+    "category": "Legitimate URL",
+    "url": "https://www.google.com/search?q=cybersecurity",
+    "expected_label": "SAFE"
+  }
+]

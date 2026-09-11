@@ -1,0 +1,55 @@
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: phishing_mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=phishing_detection
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - phishing_net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: phishing_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_DATABASE=phishing_detection
+      - JWT_SECRET=super_secret_phishing_detection_jwt_key_2026_change_in_production
+      - STORE_RAW_INPUT=false
+      - MODEL_PATH=/app/ml/saved_models
+    depends_on:
+      - mongodb
+    volumes:
+      - ./ml:/app/ml
+    networks:
+      - phishing_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: phishing_frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - phishing_net
+
+networks:
+  phishing_net:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local

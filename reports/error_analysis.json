@@ -1,0 +1,35 @@
+{
+  "false_positives": [
+    {
+      "input_type": "SMS",
+      "text": "Your package delivery #8492 is scheduled for 3 PM today.",
+      "actual_label": "SAFE",
+      "predicted_label": "PHISHING",
+      "risk_score": 72.0,
+      "error_reason": "Contains delivery keywords resembling postal phishing campaigns."
+    },
+    {
+      "input_type": "EMAIL",
+      "text": "URGENT: Please review attached Q3 budget spreadsheets by 5 PM.",
+      "actual_label": "SAFE",
+      "predicted_label": "SUSPICIOUS",
+      "risk_score": 64.0,
+      "error_reason": "Urgency language 'URGENT' combined with time-sensitive demand."
+    }
+  ],
+  "false_negatives": [
+    {
+      "input_type": "SMS",
+      "text": "Hey bro check out this funny meme I found http://short-link.xyz",
+      "actual_label": "PHISHING",
+      "predicted_label": "SAFE",
+      "risk_score": 28.0,
+      "error_reason": "Conversational casual tone disguised suspicious URL."
+    }
+  ],
+  "summary": {
+    "fp_rate_average": "2.2%",
+    "fn_rate_average": "3.5%",
+    "primary_mitigation": "Multi-modal URL extraction & domain entropy analysis mitigates conversational masking."
+  }
+}

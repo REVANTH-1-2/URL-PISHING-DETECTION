@@ -1,8 +1,9 @@
 import { ScanResponse, AnalyticsOverview, ModelMetricDoc, AuthToken, User } from '../types';
 
 const getApiBase = () => {
-  if (import.meta.env.VITE_API_URL) {
-    const base = import.meta.env.VITE_API_URL.replace(/\/+$/, '');
+  const metaEnv = (import.meta as any).env;
+  if (metaEnv && metaEnv.VITE_API_URL) {
+    const base = metaEnv.VITE_API_URL.replace(/\/+$/, '');
     return base.endsWith('/api') ? base : `${base}/api`;
   }
   if (typeof window !== 'undefined') {

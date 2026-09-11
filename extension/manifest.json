@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "DeepShield AI - Phishing Detector",
-  "version": "1.0",
-  "description": "Real-time AI-powered phishing & scam link scanner for your browser.",
+  "name": "DeepShield AI - Real-time Phishing Blocker",
+  "version": "1.1",
+  "description": "Real-time AI-powered phishing link scanner that automatically blocks risky websites before they open.",
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -11,9 +11,14 @@
       "128": "icons/icon128.png"
     }
   },
+  "background": {
+    "service_worker": "background.js"
+  },
   "permissions": [
     "activeTab",
-    "scripting"
+    "tabs",
+    "webNavigation",
+    "storage"
   ],
   "host_permissions": [
     "http://*/*",

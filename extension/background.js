@@ -56,7 +56,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     if (!response.ok) return;
 
     const data = await response.json();
-    const isRisky = data.prediction === "PHISHING" || data.risk_score >= 55.0;
+    const isRisky = data.prediction === "PHISHING" || data.prediction === "SUSPICIOUS" || data.risk_score >= 40.0;
 
     scannedCache.set(targetUrl, { isRisky, data });
 

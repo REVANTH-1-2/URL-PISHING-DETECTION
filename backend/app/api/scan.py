@@ -109,6 +109,9 @@ async def scan_url(req: URLScanRequest):
         if feats_dict.get("has_at_symbol", 0) > 0: rule_score += 35
         if feats_dict.get("domain_entropy", 0) > 3.8: rule_score += 20
         if feats_dict.get("dga_vowel_signal", 0) > 0: rule_score += 15
+        if feats_dict.get("has_hex_encoding", 0) > 0: rule_score += 20
+        if feats_dict.get("url_length", 0) > 300: rule_score += 30
+        if feats_dict.get("special_char_count", 0) > 30: rule_score += 25
         if feats_dict.get("suspicious_kw_count", 0) >= 2: rule_score += 30
         elif feats_dict.get("suspicious_kw_count", 0) == 1: rule_score += 15
         if feats_dict.get("uses_https", 1) == 0: rule_score += 15

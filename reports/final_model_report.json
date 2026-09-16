@@ -1,56 +1,56 @@
 {
   "url_report": {
     "dataset": "URL",
-    "selected_best_model": "XGBoost",
+    "selected_best_model": "RandomForest",
     "feature_count": 35,
     "test_samples": 7500,
     "unseen_test_metrics": {
-      "accuracy": 0.8924,
-      "precision": 0.8906,
-      "recall": 0.8333,
-      "f1_score": 0.861,
-      "roc_auc": 0.9592,
-      "specificity": 0.9318,
-      "false_positive_rate": 0.0682,
-      "false_negative_rate": 0.1667,
+      "accuracy": 0.8952,
+      "precision": 0.8988,
+      "recall": 0.8317,
+      "f1_score": 0.8639,
+      "roc_auc": 0.9587,
+      "specificity": 0.9376,
+      "false_positive_rate": 0.0624,
+      "false_negative_rate": 0.1683,
       "confusion_matrix": {
-        "TN": 4193,
-        "FP": 307,
-        "FN": 500,
-        "TP": 2500
+        "TN": 4219,
+        "FP": 281,
+        "FN": 505,
+        "TP": 2495
       }
     },
     "overfitting_analysis": {
-      "train_f1": 0.9098,
-      "val_f1": 0.8692,
-      "test_f1": 0.861,
-      "delta": 0.0488,
-      "is_overfitting": false,
-      "warning": null
+      "train_f1": 0.9655,
+      "val_f1": 0.8686,
+      "test_f1": 0.8639,
+      "delta": 0.1016,
+      "is_overfitting": true,
+      "warning": "High train-test F1 gap detected"
     },
     "all_model_val_results": {
       "XGBoost": {
-        "train_f1": 0.9098285082057902,
-        "val_f1": 0.8692,
-        "val_auc": 0.9591
+        "train_f1": 0.909452736318408,
+        "val_f1": 0.8666,
+        "val_auc": 0.959
       },
       "RandomForest": {
-        "train_f1": 0.9646082678610765,
-        "val_f1": 0.8685,
-        "val_auc": 0.9605
+        "train_f1": 0.9655223004694836,
+        "val_f1": 0.8686,
+        "val_auc": 0.96
       },
       "LogisticRegression": {
-        "train_f1": 0.7206417466093284,
-        "val_f1": 0.7155,
-        "val_auc": 0.8656
+        "train_f1": 0.7210580698491423,
+        "val_f1": 0.7156,
+        "val_auc": 0.8657
       },
       "VotingEnsemble": {
-        "train_f1": 0.9200915812783845,
-        "val_f1": 0.8622,
-        "val_auc": 0.9572
+        "train_f1": 0.9194935948007062,
+        "val_f1": 0.8628,
+        "val_auc": 0.9569
       }
     },
-    "evaluation_date": "2026-09-16T08:50:03.828346"
+    "evaluation_date": "2026-09-16T09:16:01.278253"
   },
-  "generated_at": "2026-09-16T08:50:03.828485"
+  "generated_at": "2026-09-16T09:16:01.278406"
 }

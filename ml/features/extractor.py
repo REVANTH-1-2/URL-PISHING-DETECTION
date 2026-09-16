@@ -25,7 +25,9 @@ SUSPICIOUS_KEYWORDS = [
 SUSPICIOUS_TLDS = [
     'xyz', 'top', 'live', 'click', 'info', 'zip', 'online', 'site',
     'work', 'tk', 'ml', 'cf', 'ga', 'gq', 'pw', 'cc', 'ru', 'cn',
-    'bid', 'loan', 'men', 'download', 'win', 'stream', 'racing'
+    'bid', 'loan', 'men', 'download', 'win', 'stream', 'racing',
+    'cfd', 'icu', 'rest', 'cam', 'monster', 'buzz', 'quest', 'cyou',
+    'shop', 'space', 'club', 'digital', 'agency', 'best', 'fit'
 ]
 
 URL_SHORTENERS = [

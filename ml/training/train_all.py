@@ -23,7 +23,9 @@ import os
 import sys
 import json
 import warnings
+# pyrefly: ignore [missing-import]
 import joblib
+# pyrefly: ignore [missing-import]
 import numpy as np
 import pandas as pd
 from datetime import datetime
@@ -50,6 +52,7 @@ from sklearn.metrics import (
 
 # ── XGBoost ──────────────────────────────────────────────────────────────────
 try:
+    # pyrefly: ignore [missing-import]
     import xgboost as xgb
     XGB_AVAILABLE = True
 except Exception:

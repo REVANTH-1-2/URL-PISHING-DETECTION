@@ -52,7 +52,9 @@ class LeakageFreeTabularPipeline:
         self.scaler = StandardScaler()
 
     def fit_transform_train(self, train_features: np.ndarray) -> np.ndarray:
-        return self.scaler.fit_transform(train_features)
+        clean_features = np.nan_to_num(train_features, nan=0.0, posinf=0.0, neginf=0.0)
+        return self.scaler.fit_transform(clean_features)
 
     def transform_unseen(self, features: np.ndarray) -> np.ndarray:
-        return self.scaler.transform(features)
+        clean_features = np.nan_to_num(features, nan=0.0, posinf=0.0, neginf=0.0)
+        return self.scaler.transform(clean_features)

@@ -81,8 +81,12 @@ async def scan_url(req: URLScanRequest):
     # ── Model prediction ──────────────────────────────────────────────────────
     if model and scaler:
         feats_dict = extract_url_features(req.url)
-        feats_arr  = np.array([list(feats_dict.values())])
-        X          = scaler.transform(feats_arr)
+        if feature_names:
+            feats_arr = np.array([[feats_dict[k] for k in feature_names]])
+        else:
+            feats_arr = np.array([list(feats_dict.values())])
+
+        X = scaler.transform(feats_arr)
 
         if hasattr(model, "predict_proba"):
             url_risk = float(model.predict_proba(X)[0][1]) * 100.0
@@ -95,35 +99,40 @@ async def scan_url(req: URLScanRequest):
         feats_dict = extract_url_features(req.url)
         rule_score = 0.0
 
-        if feats_dict["is_ip"]              > 0: rule_score += 35
-        if feats_dict["has_suspicious_tld"] > 0: rule_score += 25
-        if feats_dict["domain_brand_mismatch"] > 0: rule_score += 30
-        if feats_dict["brand_in_subdomain"] > 0: rule_score += 25
-        if feats_dict["is_shortened"]       > 0: rule_score += 20
-        if feats_dict["has_punycode"]       > 0: rule_score += 30
-        if feats_dict["has_exec_extension"] > 0: rule_score += 35
-        if feats_dict["domain_entropy"]     > 3.8: rule_score += 20
-        if feats_dict["dga_vowel_signal"]   > 0: rule_score += 15
-        if feats_dict["uses_https"]         == 0: rule_score += 10
-        if feats_dict["is_trusted_domain"]  > 0: rule_score -= 40
+        if feats_dict.get("is_ip", 0) > 0: rule_score += 40
+        if feats_dict.get("has_suspicious_tld", 0) > 0: rule_score += 35
+        if feats_dict.get("domain_brand_mismatch", 0) > 0: rule_score += 45
+        if feats_dict.get("brand_in_subdomain", 0) > 0: rule_score += 40
+        if feats_dict.get("is_shortened", 0) > 0: rule_score += 30
+        if feats_dict.get("has_punycode", 0) > 0: rule_score += 35
+        if feats_dict.get("has_exec_extension", 0) > 0: rule_score += 40
+        if feats_dict.get("has_at_symbol", 0) > 0: rule_score += 35
+        if feats_dict.get("domain_entropy", 0) > 3.8: rule_score += 20
+        if feats_dict.get("dga_vowel_signal", 0) > 0: rule_score += 15
+        if feats_dict.get("suspicious_kw_count", 0) >= 2: rule_score += 30
+        elif feats_dict.get("suspicious_kw_count", 0) == 1: rule_score += 15
+        if feats_dict.get("uses_https", 1) == 0: rule_score += 15
+        if feats_dict.get("is_trusted_domain", 0) > 0: rule_score -= 30
 
-        url_risk = float(min(max(rule_score, 0), 99))
+        url_risk = float(min(max(rule_score, 0.0), 99.0))
         selected_model_name = "RuleBasedFallback"
 
     # ── Trusted Domain Calibration ────────────────────────────────────────────
-    # Prevent dataset path-bias false positives for trusted domains (e.g. github.com/foo)
+    # Prevent path-bias false positives ONLY if no suspicious indicators exist
     if feats_dict.get("is_trusted_domain", 0) > 0:
-        # Check preliminary high-risk indicators
-        has_high_risk = bool(
+        has_suspicious_signal = bool(
             feats_dict.get("is_ip", 0) > 0 or
             feats_dict.get("has_punycode", 0) > 0 or
             feats_dict.get("has_suspicious_tld", 0) > 0 or
             feats_dict.get("domain_brand_mismatch", 0) > 0 or
             feats_dict.get("brand_in_subdomain", 0) > 0 or
             feats_dict.get("has_at_symbol", 0) > 0 or
-            feats_dict.get("has_exec_extension", 0) > 0
+            feats_dict.get("has_exec_extension", 0) > 0 or
+            feats_dict.get("is_shortened", 0) > 0 or
+            feats_dict.get("suspicious_kw_count", 0) > 0 or
+            url_risk >= 50.0
         )
-        if not has_high_risk:
+        if not has_suspicious_signal:
             url_risk = min(url_risk, 5.0)
 
     # ── Fusion (URL-only mode: url_risk == domain_risk) ───────────────────────

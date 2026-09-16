@@ -5,12 +5,21 @@ from typing import Dict, Any, List
 from urllib.parse import urlparse, unquote
 
 # ── Suspicious signals ──────────────────────────────────────────────────────
+import re
+import math
+import numpy as np
+from typing import Dict, Any, List
+from urllib.parse import urlparse, unquote
+
+# ── Suspicious signals ──────────────────────────────────────────────────────
 SUSPICIOUS_KEYWORDS = [
     'login', 'signin', 'verify', 'account', 'banking', 'secure', 'update',
     'password', 'credential', 'confirm', 'paypal', 'chase', 'wellsfargo',
     'appleid', 'microsoft', 'netflix', 'amazon', 'support', 'billing',
     'auth', 'authenticate', 'validation', 'suspend', 'restore', 'unlock',
-    'webscr', 'checkout', 'purchase', 'transaction', 'refund'
+    'webscr', 'checkout', 'purchase', 'transaction', 'refund', 'citi',
+    'docusign', 'sharepoint', 'onedrive', 'outlook', 'icloud', 'notice',
+    'claim', 'token', 'session', 'wallet', 'security', 'alert', 'dispute'
 ]
 
 SUSPICIOUS_TLDS = [
@@ -27,12 +36,48 @@ URL_SHORTENERS = [
 
 EXEC_EXTENSIONS = ['.php', '.exe', '.cgi', '.asp', '.aspx', '.jsp', '.bat', '.sh', '.py', '.pl']
 
-# Known major brands that get impersonated
-BRAND_NAMES = [
-    'paypal', 'apple', 'google', 'microsoft', 'amazon', 'netflix',
-    'facebook', 'instagram', 'twitter', 'linkedin', 'chase', 'wellsfargo',
-    'citibank', 'bankofamerica', 'usps', 'fedex', 'dhl', 'ups', 'irs',
-    'ebay', 'dropbox', 'whatsapp', 'telegram', 'steam', 'roblox'
+# Mapping of brand names to their legitimate registered domain roots
+OFFICIAL_BRAND_DOMAINS = {
+    'paypal': ['paypal.com', 'paypal.me'],
+    'apple': ['apple.com', 'icloud.com'],
+    'google': ['google.com', 'youtube.com', 'gmail.com'],
+    'microsoft': ['microsoft.com', 'office.com', 'office365.com', 'live.com', 'outlook.com', 'azure.com', 'msn.com', 'windows.net'],
+    'amazon': ['amazon.com', 'aws.amazon.com'],
+    'netflix': ['netflix.com'],
+    'facebook': ['facebook.com', 'fb.com'],
+    'instagram': ['instagram.com'],
+    'twitter': ['twitter.com', 'x.com'],
+    'linkedin': ['linkedin.com'],
+    'chase': ['chase.com'],
+    'wellsfargo': ['wellsfargo.com'],
+    'citibank': ['citibank.com', 'citi.com'],
+    'bankofamerica': ['bankofamerica.com', 'bofa.com'],
+    'usps': ['usps.com', 'usps.gov'],
+    'fedex': ['fedex.com'],
+    'dhl': ['dhl.com'],
+    'ups': ['ups.com'],
+    'irs': ['irs.gov'],
+    'ebay': ['ebay.com'],
+    'dropbox': ['dropbox.com'],
+    'whatsapp': ['whatsapp.com'],
+    'telegram': ['telegram.org', 't.me'],
+    'steam': ['steampowered.com', 'steamcommunity.com'],
+    'roblox': ['roblox.com'],
+    'coinbase': ['coinbase.com'],
+    'binance': ['binance.com'],
+    'stripe': ['stripe.com'],
+    'docusign': ['docusign.com', 'docusign.net'],
+    'metamask': ['metamask.io'],
+}
+
+BRAND_NAMES = list(OFFICIAL_BRAND_DOMAINS.keys())
+
+# Regex patterns for common character-replacement typosquatting
+TYPOSQUAT_PATTERNS = [
+    r'p[a4@]yp[a4@][l1|i]', r'g[0o]{2}gl[e3]', r'm[i1l|]cr[o0]s[o0]ft',
+    r'am[a4@]z[o0]n', r'n[e3]tfl[i1l|]x', r'f[a4@]c[e3]b[o0]{2}k',
+    r'ch[a4@]s[e3]', r'w[e3]llsf[a4@]rg[o0]', r'a[p1]pl[e3]',
+    r'b[a4@]nk[o0]f[a4@]m[e3]r[i1]c[a4@]', r'c[i1]t[i1]', r'd[o0]c[u3]s[i1]gn'
 ]
 
 # Alexa-style top-1000 domain whitelist (sample of known-safe roots)
@@ -73,7 +118,6 @@ def extract_url_features(url_str: str) -> Dict[str, float]:
         parsed = urlparse(url_lower if '://' in url_lower else f'http://{url_lower}')
     except Exception:
         parsed = urlparse('http://invalid-url-parse-fallback.com')
-
 
     netloc = parsed.netloc or parsed.path.split('/')[0]
     # Strip port from netloc for domain analysis
@@ -157,22 +201,30 @@ def extract_url_features(url_str: str) -> Dict[str, float]:
     # ── Feature 23: Punycode / IDN homograph (xn--) ──────────────────────────
     has_punycode = 1.0 if 'xn--' in url_lower else 0.0
 
-    # ── Feature 24: Brand name in subdomain (not in registered domain) ───────
+    # ── Feature 24: Brand name in subdomain (not in legitimate brand domain) ─
     brand_in_subdomain = 0.0
     if subdomains:
         subdomain_str = '.'.join(subdomains).lower()
-        for brand in BRAND_NAMES:
-            if brand in subdomain_str and brand not in registered_domain:
+        for brand, official_domains in OFFICIAL_BRAND_DOMAINS.items():
+            if brand in subdomain_str and registered_domain not in official_domains:
                 brand_in_subdomain = 1.0
                 break
 
-    # ── Feature 25: Domain repetition / brand in wrong position ──────────────
-    # e.g. paypal.com.verify-login.xyz — brand appears but registered domain differs
+    # ── Feature 25: Domain brand mismatch / typosquatting ─────────────────────
     domain_brand_mismatch = 0.0
-    for brand in BRAND_NAMES:
-        if brand in domain_no_port and brand not in registered_domain:
-            domain_brand_mismatch = 1.0
-            break
+    is_official_brand_dom = any(registered_domain in off_doms for off_doms in OFFICIAL_BRAND_DOMAINS.values())
+
+    if not is_official_brand_dom:
+        for brand, official_domains in OFFICIAL_BRAND_DOMAINS.items():
+            if brand in domain_no_port:
+                domain_brand_mismatch = 1.0
+                break
+
+        if domain_brand_mismatch == 0.0:
+            for pat in TYPOSQUAT_PATTERNS:
+                if re.search(pat, domain_no_port):
+                    domain_brand_mismatch = 1.0
+                    break
 
     # ── Feature 26: Numeric-heavy domain (>30% digits in registered domain) ──
     reg_domain_root = registered_domain.split('.')[0]
@@ -259,3 +311,4 @@ def extract_url_features(url_str: str) -> Dict[str, float]:
         "dga_vowel_signal": dga_vowel_signal,
         "has_consonant_cluster": has_consonant_cluster,
     }
+

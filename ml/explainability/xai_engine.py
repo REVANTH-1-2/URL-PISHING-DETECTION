@@ -64,11 +64,12 @@ class XAIEngine:
         if feats["domain_brand_mismatch"] > 0:
             detected_in.append("DOMAIN")
             risk_factors.append({
-                "factor": "Brand Name Embedded in Malicious Domain",
+                "factor": "Brand Impersonation / Typosquatting Detected",
                 "severity": "HIGH",
                 "explanation": (
-                    "A well-known brand name appears in the URL but is NOT the registered domain "
-                    "(e.g. paypal.account-verify.xyz). This is a classic spoofing technique."
+                    "A well-known brand name or character-substitution typosquat appears in the domain, "
+                    "but the site is NOT hosted on an official domain of that brand (e.g. paypal-verify.com or paypa1.com). "
+                    "This is a primary credential harvesting technique."
                 ),
             })
 

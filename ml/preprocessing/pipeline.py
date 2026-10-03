@@ -5,18 +5,33 @@ from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import StandardScaler
 
+def get_train_test_split(
+    df: pd.DataFrame, 
+    target_col: str = "label", 
+    test_size: float = 0.20, 
+    random_state: int = 42
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Performs 80% Train and 20% Untouched Test stratified split.
+    The test set remains completely untouched until final locked model evaluation.
+    """
+    df_train, df_test = train_test_split(
+        df, 
+        test_size=test_size, 
+        stratify=df[target_col], 
+        random_state=random_state
+    )
+    return df_train, df_test
+
 def get_train_val_test_split(
     df: pd.DataFrame, 
     target_col: str = "label", 
-    test_size: float = 0.15, 
-    val_size: float = 0.15, 
+    test_size: float = 0.20, 
     random_state: int = 42
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
-    Performs 70% Train, 15% Validation, 15% Test stratified split.
-    The test set remains completely untouched until locked model evaluation.
+    Performs 80% Train (with 15% inner val for CV) and 20% Untouched Test stratified split.
     """
-    # First split off test set (15%)
     df_train_val, df_test = train_test_split(
         df, 
         test_size=test_size, 
@@ -24,11 +39,9 @@ def get_train_val_test_split(
         random_state=random_state
     )
 
-    # Next split remaining 85% into Train (70%) and Validation (15%)
-    relative_val_size = val_size / (1.0 - test_size)  # 0.15 / 0.85 = 0.17647
     df_train, df_val = train_test_split(
         df_train_val, 
-        test_size=relative_val_size, 
+        test_size=0.15, 
         stratify=df_train_val[target_col], 
         random_state=random_state
     )

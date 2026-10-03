@@ -196,9 +196,8 @@ def create_url_readme(url_stats: Dict[str, Any]):
 35 structural, lexical, domain, and heuristic features are extracted per URL.
 
 ## Split
-- **Train Set**: 70%
-- **Validation Set**: 15%
-- **Test Set**: 15% (Stratified)
+- **Train Set**: 80%
+- **Test Set**: 20% (Stratified)
 """
     with open("ml/datasets/url/README.md", "w") as f:
         f.write(content)

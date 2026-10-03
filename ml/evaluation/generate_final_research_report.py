@@ -98,9 +98,8 @@ Three independent, publicly available cybersecurity datasets were analyzed and p
 
 ## 2. Dataset Split (Data Leakage Prevention)
 To strictly prevent data leakage:
-- **Training Set (70%)**: Used exclusively for model training, TF-IDF vocabulary fitting, and StandardScaler parameter estimation.
-- **Validation Set (15%)**: Used exclusively for hyperparameter tuning and model selection.
-- **Test Set (15%)**: Completely unseen until final locked model evaluation.
+- **Training Set (80%)**: Used exclusively for model training, TF-IDF vocabulary fitting, and StandardScaler parameter estimation (with 5-fold Stratified CV).
+- **Test Set (20%)**: Completely unseen until final locked model evaluation.
 
 ---
 

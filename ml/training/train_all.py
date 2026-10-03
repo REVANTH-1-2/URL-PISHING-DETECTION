@@ -205,9 +205,9 @@ def train_url_model(df: pd.DataFrame):
         df = pd.concat([df_phish, df_legit], ignore_index=True).sample(frac=1.0, random_state=RANDOM_STATE).reset_index(drop=True)
         print(f"Sampled balanced training subset: {len(df)} records ({sum(df['label']==0)} legit, {sum(df['label']==1)} phishing)")
 
-    # ── 1. Split ─────────────────────────────────────────────────────────────
-    df_train, df_val, df_test = get_train_val_test_split(df, target_col="label")
-    print(f"Split → Train: {len(df_train)} | Val: {len(df_val)} | Test (unseen): {len(df_test)}")
+    # ── 1. Split (80% Train / 20% Test) ──────────────────────────────────────
+    df_train, df_val, df_test = get_train_val_test_split(df, target_col="label", test_size=0.20)
+    print(f"Split (80/20) → Train: {len(df_train)} | Val: {len(df_val)} | Test (unseen 20%): {len(df_test)}")
 
 
     # ── 2. Feature extraction ────────────────────────────────────────────────

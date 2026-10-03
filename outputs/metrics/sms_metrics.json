@@ -1,0 +1,473 @@
+{
+  "timestamp": "2026-10-03T10:24:09.599682",
+  "selected_model": "Logistic Regression",
+  "selected_threshold": 0.16838383838383839,
+  "dataset_info": {
+    "dataset_name": "SMS Phishing / Spam Dataset",
+    "filepath": "/Users/revanth33/PROJECT/pishing/ml/datasets/sms/sms_dataset.csv",
+    "total_records": 5574,
+    "duplicate_records": 5554,
+    "columns": [
+      "text",
+      "label"
+    ],
+    "missing_values": {
+      "text": 0,
+      "label": 0
+    },
+    "label_column": "label",
+    "label_counts": {
+      "0": 4827,
+      "1": 747
+    },
+    "conflicting_labels": 0,
+    "deduplicated_records": 20
+  },
+  "splits": {
+    "train": 14,
+    "val": 2,
+    "test": 4
+  },
+  "all_models": {
+    "Logistic Regression": {
+      "val_probs": [
+        0.16378529012668697,
+        0.9665012337622363
+      ],
+      "test_probs": [
+        0.20059963020275298,
+        0.1386035217852203,
+        0.9516822943387787,
+        0.9748202898867706
+      ],
+      "tuned_threshold": 0.16838383838383839,
+      "target_recall_achieved": true,
+      "val_default_metrics": {
+        "accuracy": 100.0,
+        "precision": 100.0,
+        "recall": 100.0,
+        "specificity": 100.0,
+        "f1_score": 100.0,
+        "roc_auc": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "confusion_matrix": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "tp": 1,
+        "fp": 0,
+        "tn": 1,
+        "fn": 0
+      },
+      "val_tuned_metrics": {
+        "accuracy": 100.0,
+        "precision": 100.0,
+        "recall": 100.0,
+        "specificity": 100.0,
+        "f1_score": 100.0,
+        "roc_auc": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "confusion_matrix": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "tp": 1,
+        "fp": 0,
+        "tn": 1,
+        "fn": 0
+      },
+      "test_default_metrics": {
+        "accuracy": 100.0,
+        "precision": 100.0,
+        "recall": 100.0,
+        "specificity": 100.0,
+        "f1_score": 100.0,
+        "roc_auc": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "confusion_matrix": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "tp": 2,
+        "fp": 0,
+        "tn": 2,
+        "fn": 0
+      },
+      "test_tuned_metrics": {
+        "accuracy": 75.0,
+        "precision": 66.67,
+        "recall": 100.0,
+        "specificity": 50.0,
+        "f1_score": 80.0,
+        "roc_auc": 1.0,
+        "fpr": 50.0,
+        "fnr": 0.0,
+        "confusion_matrix": [
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "tp": 2,
+        "fp": 1,
+        "tn": 1,
+        "fn": 0
+      }
+    },
+    "Linear SVM": {
+      "val_probs": [
+        0.24899801753568643,
+        0.7962260302415336
+      ],
+      "test_probs": [
+        0.28203690487864247,
+        0.23188561680757877,
+        0.7678295186379334,
+        0.8418471102078695
+      ],
+      "tuned_threshold": 0.25747474747474747,
+      "target_recall_achieved": true,
+      "val_default_metrics": {
+        "accuracy": 100.0,
+        "precision": 100.0,
+        "recall": 100.0,
+        "specificity": 100.0,
+        "f1_score": 100.0,
+        "roc_auc": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "confusion_matrix": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "tp": 1,
+        "fp": 0,
+        "tn": 1,
+        "fn": 0
+      },
+      "val_tuned_metrics": {
+        "accuracy": 100.0,
+        "precision": 100.0,
+        "recall": 100.0,
+        "specificity": 100.0,
+        "f1_score": 100.0,
+        "roc_auc": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "confusion_matrix": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "tp": 1,
+        "fp": 0,
+        "tn": 1,
+        "fn": 0
+      },
+      "test_default_metrics": {
+        "accuracy": 100.0,
+        "precision": 100.0,
+        "recall": 100.0,
+        "specificity": 100.0,
+        "f1_score": 100.0,
+        "roc_auc": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "confusion_matrix": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "tp": 2,
+        "fp": 0,
+        "tn": 2,
+        "fn": 0
+      },
+      "test_tuned_metrics": {
+        "accuracy": 75.0,
+        "precision": 66.67,
+        "recall": 100.0,
+        "specificity": 50.0,
+        "f1_score": 80.0,
+        "roc_auc": 1.0,
+        "fpr": 50.0,
+        "fnr": 0.0,
+        "confusion_matrix": [
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "tp": 2,
+        "fp": 1,
+        "tn": 1,
+        "fn": 0
+      }
+    },
+    "Random Forest": {
+      "val_probs": [
+        0.08,
+        0.77
+      ],
+      "test_probs": [
+        0.08,
+        0.16,
+        0.75,
+        0.62
+      ],
+      "tuned_threshold": 0.08919191919191918,
+      "target_recall_achieved": true,
+      "val_default_metrics": {
+        "accuracy": 100.0,
+        "precision": 100.0,
+        "recall": 100.0,
+        "specificity": 100.0,
+        "f1_score": 100.0,
+        "roc_auc": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "confusion_matrix": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "tp": 1,
+        "fp": 0,
+        "tn": 1,
+        "fn": 0
+      },
+      "val_tuned_metrics": {
+        "accuracy": 100.0,
+        "precision": 100.0,
+        "recall": 100.0,
+        "specificity": 100.0,
+        "f1_score": 100.0,
+        "roc_auc": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "confusion_matrix": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "tp": 1,
+        "fp": 0,
+        "tn": 1,
+        "fn": 0
+      },
+      "test_default_metrics": {
+        "accuracy": 100.0,
+        "precision": 100.0,
+        "recall": 100.0,
+        "specificity": 100.0,
+        "f1_score": 100.0,
+        "roc_auc": 1.0,
+        "fpr": 0.0,
+        "fnr": 0.0,
+        "confusion_matrix": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "tp": 2,
+        "fp": 0,
+        "tn": 2,
+        "fn": 0
+      },
+      "test_tuned_metrics": {
+        "accuracy": 75.0,
+        "precision": 66.67,
+        "recall": 100.0,
+        "specificity": 50.0,
+        "f1_score": 80.0,
+        "roc_auc": 1.0,
+        "fpr": 50.0,
+        "fnr": 0.0,
+        "confusion_matrix": [
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "tp": 2,
+        "fp": 1,
+        "tn": 1,
+        "fn": 0
+      }
+    },
+    "XGBoost": {
+      "val_probs": [
+        0.1718733310699463,
+        0.1718733310699463
+      ],
+      "test_probs": [
+        0.1718733310699463,
+        0.1718733310699463,
+        0.1718733310699463,
+        0.1718733310699463
+      ],
+      "tuned_threshold": 0.01,
+      "target_recall_achieved": true,
+      "val_default_metrics": {
+        "accuracy": 50.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "specificity": 100.0,
+        "f1_score": 0.0,
+        "roc_auc": 0.5,
+        "fpr": 0.0,
+        "fnr": 100.0,
+        "confusion_matrix": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "tp": 0,
+        "fp": 0,
+        "tn": 1,
+        "fn": 1
+      },
+      "val_tuned_metrics": {
+        "accuracy": 50.0,
+        "precision": 50.0,
+        "recall": 100.0,
+        "specificity": 0.0,
+        "f1_score": 66.67,
+        "roc_auc": 0.5,
+        "fpr": 100.0,
+        "fnr": 0.0,
+        "confusion_matrix": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "tp": 1,
+        "fp": 1,
+        "tn": 0,
+        "fn": 0
+      },
+      "test_default_metrics": {
+        "accuracy": 50.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "specificity": 100.0,
+        "f1_score": 0.0,
+        "roc_auc": 0.5,
+        "fpr": 0.0,
+        "fnr": 100.0,
+        "confusion_matrix": [
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "tp": 0,
+        "fp": 0,
+        "tn": 2,
+        "fn": 2
+      },
+      "test_tuned_metrics": {
+        "accuracy": 50.0,
+        "precision": 50.0,
+        "recall": 100.0,
+        "specificity": 0.0,
+        "f1_score": 66.67,
+        "roc_auc": 0.5,
+        "fpr": 100.0,
+        "fnr": 0.0,
+        "confusion_matrix": [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "tp": 2,
+        "fp": 2,
+        "tn": 0,
+        "fn": 0
+      }
+    }
+  }
+}

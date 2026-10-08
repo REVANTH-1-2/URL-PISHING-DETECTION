@@ -37,6 +37,27 @@ export async function scanURL(url: string): Promise<ScanResponse> {
   return res.json();
 }
 
+export async function scanSMS(message: string): Promise<ScanResponse> {
+  const res = await fetch(`${API_BASE}/scan/sms`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message })
+  });
+  if (!res.ok) throw new Error('SMS analysis failed');
+  return res.json();
+}
+
+export async function scanEmail(sender: string, subject: string, body: string): Promise<ScanResponse> {
+  const res = await fetch(`${API_BASE}/scan/email`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sender, subject, body })
+  });
+  if (!res.ok) throw new Error('Email analysis failed');
+  return res.json();
+}
+
+
 
 
 

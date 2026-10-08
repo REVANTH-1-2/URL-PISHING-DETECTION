@@ -20,7 +20,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.
 
 from app.database.connection import db
 from app.core.config import settings
-from app.schemas.scan import URLScanRequest, ScanResponse, RiskFactor, ModelResultItem
+from app.schemas.scan import URLScanRequest, SMSScanRequest, EmailScanRequest, ScanResponse, RiskFactor, ModelResultItem
 from ml.features.extractor import extract_url_features
 from ml.explainability.xai_engine import XAIEngine
 from ml.training.fusion_engine import FusionEngine
@@ -176,7 +176,171 @@ async def scan_url(req: URLScanRequest):
     else:
         response.id = "scan_url_standalone"
 
-    return response# ── Scan history ─────────────────────────────────────────────────────────────
+    return response
+
+
+_DETECTOR_CACHE = None
+
+def get_detector():
+    global _DETECTOR_CACHE
+    if _DETECTOR_CACHE is None:
+        try:
+            from load_model import MultiModalPhishingDetector
+            _DETECTOR_CACHE = MultiModalPhishingDetector()
+        except Exception as e:
+            print(f"[Warning] Failed to instantiate MultiModalPhishingDetector: {e}")
+            _DETECTOR_CACHE = False
+    return _DETECTOR_CACHE if _DETECTOR_CACHE is not False else None
+
+
+@router.post("/sms", response_model=ScanResponse, summary="Scan an SMS message for smishing/phishing")
+async def scan_sms(req: SMSScanRequest):
+    detector = get_detector()
+    if not detector or not detector.sms_pkg:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="SMS model pipeline is not available or failed to load."
+        )
+
+    try:
+        res = detector.predict_sms(req.message)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"SMS prediction failed: {str(e)}")
+
+    prob = res["probability"]
+    is_phishing = res["is_phishing_or_suspicious"]
+    prediction = "PHISHING" if is_phishing else "SAFE"
+    risk_score = round(prob * 100.0, 1)
+    confidence = round(max(prob, 1.0 - prob) * 100.0, 1)
+
+    r_factors = []
+    for contrib in res.get("contributing_features", []):
+        r_factors.append(RiskFactor(
+            factor=contrib["readable_name"],
+            severity="HIGH" if contrib["contribution_score"] > 0.1 else "MEDIUM",
+            explanation=f"Contributed +{contrib['contribution_score']} to phishing risk score."
+        ))
+
+    if "explanation" in res:
+        r_factors.append(RiskFactor(
+            factor="Model Explanation",
+            severity="INFO",
+            explanation=res["explanation"]
+        ))
+
+    recommendations = [
+        "Do not click on links or phone numbers in suspicious SMS messages.",
+        "Verify suspicious claims directly with the organization via official contact channels."
+    ]
+
+    response = ScanResponse(
+        input_type="SMS",
+        prediction=prediction,
+        risk_score=risk_score,
+        confidence=confidence,
+        detected_in=["SMS Text Classifier Pipeline"],
+        model_results={
+            "sms_model": ModelResultItem(
+                model=type(detector.sms_pkg["model"]).__name__,
+                risk_score=risk_score
+            )
+        },
+        risk_factors=r_factors,
+        recommendations=recommendations,
+        created_at=datetime.utcnow()
+    )
+
+    if db.db is not None:
+        try:
+            doc = response.model_dump()
+            doc["input"] = {"message": req.message if settings.STORE_RAW_INPUT else "[REDACTED]"}
+            r_db = await db.db.scans.insert_one(doc)
+            response.id = str(r_db.inserted_id)
+        except Exception:
+            response.id = "scan_sms_standalone"
+    else:
+        response.id = "scan_sms_standalone"
+
+    return response
+
+
+@router.post("/email", response_model=ScanResponse, summary="Scan an Email for phishing")
+async def scan_email(req: EmailScanRequest):
+    detector = get_detector()
+    if not detector or not detector.email_pkg:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Email model pipeline is not available or failed to load."
+        )
+
+    try:
+        res = detector.predict_email(
+            sender=req.sender or "",
+            subject=req.subject or "",
+            body=req.body or "",
+            raw_text=req.raw_text or ""
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Email prediction failed: {str(e)}")
+
+    prob = res["probability"]
+    is_phishing = res["is_phishing"]
+    prediction = "PHISHING" if is_phishing else "SAFE"
+    risk_score = round(prob * 100.0, 1)
+    confidence = round(max(prob, 1.0 - prob) * 100.0, 1)
+
+    r_factors = []
+    for contrib in res.get("contributing_features", []):
+        r_factors.append(RiskFactor(
+            factor=contrib["readable_name"],
+            severity="HIGH" if contrib["contribution_score"] > 0.1 else "MEDIUM",
+            explanation=f"Contributed +{contrib['contribution_score']} to phishing risk score."
+        ))
+
+    if "explanation" in res:
+        r_factors.append(RiskFactor(
+            factor="Model Explanation",
+            severity="INFO",
+            explanation=res["explanation"]
+        ))
+
+    recommendations = [
+        "Check sender email domain carefully for spoofing or lookalike domains.",
+        "Do not download attachments or click links in unverified emails."
+    ]
+
+    response = ScanResponse(
+        input_type="EMAIL",
+        prediction=prediction,
+        risk_score=risk_score,
+        confidence=confidence,
+        detected_in=["Email Classifier Pipeline"],
+        model_results={
+            "email_model": ModelResultItem(
+                model=type(detector.email_pkg["model"]).__name__,
+                risk_score=risk_score
+            )
+        },
+        risk_factors=r_factors,
+        recommendations=recommendations,
+        created_at=datetime.utcnow()
+    )
+
+    if db.db is not None:
+        try:
+            doc = response.model_dump()
+            doc["input"] = {"raw_input": req.raw_text if settings.STORE_RAW_INPUT else "[REDACTED]"}
+            r_db = await db.db.scans.insert_one(doc)
+            response.id = str(r_db.inserted_id)
+        except Exception:
+            response.id = "scan_email_standalone"
+    else:
+        response.id = "scan_email_standalone"
+
+    return response
+
+
+# ── Scan history ─────────────────────────────────────────────────────────────
 
 @router.get("/history", response_model=List[ScanResponse], summary="Retrieve past scans")
 async def get_scan_history(

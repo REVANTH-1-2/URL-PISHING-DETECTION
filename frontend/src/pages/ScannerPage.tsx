@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
-import { ShieldAlert, CheckCircle, AlertTriangle, Cpu, HelpCircle, CornerDownRight, Zap, Globe, ExternalLink } from 'lucide-react';
-import { scanURL } from '../services/api';
+import { ShieldAlert, CheckCircle, AlertTriangle, Cpu, Zap, Globe, MessageSquare, Mail, ExternalLink } from 'lucide-react';
+import { scanURL, scanSMS, scanEmail } from '../services/api';
 import { ScanResponse } from '../types';
 
+type ScanMode = 'URL' | 'SMS' | 'EMAIL';
+
 export const ScannerPage: React.FC = () => {
+  const [mode, setMode] = useState<ScanMode>('URL');
   const [targetUrl, setTargetUrl] = useState('');
+  const [smsMessage, setSmsMessage] = useState('');
+  const [emailSender, setEmailSender] = useState('');
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
+
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ScanResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -13,34 +21,50 @@ export const ScannerPage: React.FC = () => {
     e.preventDefault();
     setError(null);
     setResult(null);
-
-    if (!targetUrl.trim()) {
-      setError('Please enter a target URL to scan.');
-      return;
-    }
-
     setLoading(true);
 
     try {
-      const data = await scanURL(targetUrl.trim());
+      let data: ScanResponse;
+      if (mode === 'URL') {
+        if (!targetUrl.trim()) throw new Error('Please enter a target URL to scan.');
+        data = await scanURL(targetUrl.trim());
+      } else if (mode === 'SMS') {
+        if (!smsMessage.trim()) throw new Error('Please enter SMS text to scan.');
+        data = await scanSMS(smsMessage.trim());
+      } else {
+        if (!emailBody.trim() && !emailSubject.trim()) throw new Error('Please enter email subject or body content to scan.');
+        data = await scanEmail(emailSender.trim(), emailSubject.trim(), emailBody.trim());
+      }
       setResult(data);
     } catch (err: any) {
-      setError(err.message || 'URL scan failed');
+      setError(err.message || 'Scan failed');
     } finally {
       setLoading(false);
     }
   };
 
-  const loadSample = (sampleType: 'PHISHING' | 'LEGIT' | 'IP_BASED') => {
+  const loadSample = (sampleType: 'PHISHING' | 'LEGIT') => {
     setResult(null);
     setError(null);
 
-    if (sampleType === 'PHISHING') {
-      setTargetUrl('http://chase-bank-security-update.xyz/login/verify.html');
-    } else if (sampleType === 'IP_BASED') {
-      setTargetUrl('http://192.168.1.1/online-banking/verify-login.php?id=9238');
+    if (mode === 'URL') {
+      setTargetUrl(sampleType === 'PHISHING' 
+        ? 'http://chase-bank-security-update.xyz/login/verify.html' 
+        : 'https://github.com/fastapi/fastapi');
+    } else if (mode === 'SMS') {
+      setSmsMessage(sampleType === 'PHISHING'
+        ? 'URGENT: Your bank account has been suspended! Verify immediately at http://bank-update-security.xyz'
+        : 'Hey, are we still meeting for lunch today at 12:30?');
     } else {
-      setTargetUrl('https://github.com/fastapi/fastapi');
+      if (sampleType === 'PHISHING') {
+        setEmailSender('security@apple-id-login-verify.click');
+        setEmailSubject('Account Suspended: Immediate Action Required');
+        setEmailBody('Dear Customer, Your Apple ID was flagged for security reasons. Please click the link to confirm your account details immediately: http://appleid-confirm.xyz');
+      } else {
+        setEmailSender('notifications@github.com');
+        setEmailSubject('[GitHub] Release v1.0.0 Ready');
+        setEmailBody('Hi developer, the new release build has been compiled and tagged successfully in your main branch.');
+      }
     }
   };
 
@@ -50,28 +74,55 @@ export const ScannerPage: React.FC = () => {
       <div className="glass-card p-6 rounded-2xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
-            <Zap className="w-6 h-6 text-blue-400" /> AI Phishing URL Scanner
+            <Zap className="w-6 h-6 text-blue-400" /> Multi-Modal AI Phishing Scanner
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Detect sophisticated phishing threats across web domains using ML ensemble models (XGBoost + RF) & Explainable AI (XAI).
+            Analyze threats across <strong>URL Domains</strong>, <strong>SMS Messages (Smishing)</strong>, and <strong>Email Content</strong> using tuned ML pipelines & Explainable AI (XAI).
           </p>
         </div>
       </div>
 
-      {/* Preset Sample Presets */}
+      {/* Mode Selector Tabs */}
+      <div className="flex rounded-2xl bg-slate-900/80 p-1 border border-slate-800">
+        <button
+          onClick={() => { setMode('URL'); setResult(null); setError(null); }}
+          className={`flex-1 py-3 px-4 rounded-xl text-xs font-extrabold tracking-wider uppercase transition flex items-center justify-center gap-2 cursor-pointer ${
+            mode === 'URL' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Globe className="w-4 h-4" /> URL Domain Model
+        </button>
+
+        <button
+          onClick={() => { setMode('SMS'); setResult(null); setError(null); }}
+          className={`flex-1 py-3 px-4 rounded-xl text-xs font-extrabold tracking-wider uppercase transition flex items-center justify-center gap-2 cursor-pointer ${
+            mode === 'SMS' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <MessageSquare className="w-4 h-4" /> SMS Smishing Model
+        </button>
+
+        <button
+          onClick={() => { setMode('EMAIL'); setResult(null); setError(null); }}
+          className={`flex-1 py-3 px-4 rounded-xl text-xs font-extrabold tracking-wider uppercase transition flex items-center justify-center gap-2 cursor-pointer ${
+            mode === 'EMAIL' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Mail className="w-4 h-4" /> Email Phishing Model
+        </button>
+      </div>
+
+      {/* Sample Loader */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/40 p-4 rounded-xl border border-slate-800/80">
         <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-          <Zap className="w-3.5 h-3.5 text-amber-400" /> Pre-fill Real Sample:
+          <Zap className="w-3.5 h-3.5 text-amber-400" /> Pre-fill Sample Input:
         </span>
         <div className="flex flex-wrap gap-2 text-xs font-semibold">
           <button onClick={() => loadSample('PHISHING')} className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-rose-400 hover:text-rose-300 hover:border-rose-500/40 transition cursor-pointer">
-            + Phishing URL Sample
-          </button>
-          <button onClick={() => loadSample('IP_BASED')} className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-amber-400 hover:text-amber-300 hover:border-amber-500/40 transition cursor-pointer">
-            + Suspicious / IP Sample
+            + Phishing {mode} Sample
           </button>
           <button onClick={() => loadSample('LEGIT')} className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-emerald-400 hover:text-emerald-300 hover:border-emerald-500/40 transition cursor-pointer">
-            + Safe URL Sample
+            + Safe {mode} Sample
           </button>
         </div>
       </div>
@@ -79,19 +130,69 @@ export const ScannerPage: React.FC = () => {
       {/* Input Form */}
       <div className="glass-card rounded-2xl border border-slate-800 p-6 space-y-6">
         <form onSubmit={handleScan} className="space-y-4">
-          <div>
-            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">Target URL to Analyze</label>
-            <div className="relative">
-              <input
-                type="text"
-                value={targetUrl}
-                onChange={(e) => setTargetUrl(e.target.value)}
-                placeholder="https://login-verification-security.com/update-info?id=82931"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-200 focus:outline-none focus:border-blue-500 font-mono transition pr-12"
-              />
-              <ExternalLink className="w-5 h-5 text-slate-600 absolute right-4 top-1/2 -translate-y-1/2" />
+          {mode === 'URL' && (
+            <div>
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">Target URL to Analyze</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={targetUrl}
+                  onChange={(e) => setTargetUrl(e.target.value)}
+                  placeholder="https://login-verification-security.com/update-info?id=82931"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-200 focus:outline-none focus:border-blue-500 font-mono transition pr-12"
+                />
+                <ExternalLink className="w-5 h-5 text-slate-600 absolute right-4 top-1/2 -translate-y-1/2" />
+              </div>
             </div>
-          </div>
+          )}
+
+          {mode === 'SMS' && (
+            <div>
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">SMS Text Message Content</label>
+              <textarea
+                rows={4}
+                value={smsMessage}
+                onChange={(e) => setSmsMessage(e.target.value)}
+                placeholder="Paste suspicious SMS text here..."
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition"
+              />
+            </div>
+          )}
+
+          {mode === 'EMAIL' && (
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Sender Email Address</label>
+                <input
+                  type="text"
+                  value={emailSender}
+                  onChange={(e) => setEmailSender(e.target.value)}
+                  placeholder="security@alert-verify.com"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Subject Line</label>
+                <input
+                  type="text"
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  placeholder="Immediate Account Verification Required"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Email Body Content</label>
+                <textarea
+                  rows={4}
+                  value={emailBody}
+                  onChange={(e) => setEmailBody(e.target.value)}
+                  placeholder="Paste email message text here..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition"
+                />
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-xs font-medium flex items-center gap-2">
@@ -105,7 +206,7 @@ export const ScannerPage: React.FC = () => {
             className="px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-2 w-full md:w-auto cursor-pointer"
           >
             {loading ? <Cpu className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-            {loading ? 'Analyzing URL with ML Inference...' : 'ANALYZE URL NOW'}
+            {loading ? `Analyzing ${mode} with ML Model...` : `ANALYZE ${mode} NOW`}
           </button>
         </form>
       </div>
@@ -202,7 +303,7 @@ export const ScannerPage: React.FC = () => {
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 space-y-2">
               {result.recommendations.map((rec, idx) => (
                 <div key={idx} className="text-xs text-slate-300 flex items-center gap-2">
-                  <span>{rec}</span>
+                  <span>• {rec}</span>
                 </div>
               ))}
             </div>

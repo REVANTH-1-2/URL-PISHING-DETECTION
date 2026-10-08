@@ -9,6 +9,17 @@ class URLScanRequest(BaseModel):
     url: str = Field(..., min_length=3, description="Target URL to analyse for phishing")
 
 
+class SMSScanRequest(BaseModel):
+    message: str = Field(..., min_length=2, description="SMS message text to analyse for smishing/phishing")
+
+
+class EmailScanRequest(BaseModel):
+    sender: Optional[str] = Field("", description="Email sender address")
+    subject: Optional[str] = Field("", description="Email subject line")
+    body: Optional[str] = Field("", description="Email body text")
+    raw_text: Optional[str] = Field("", description="Raw combined email content")
+
+
 
 class RiskFactor(BaseModel):
     factor: str

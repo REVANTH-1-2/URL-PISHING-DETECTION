@@ -25,7 +25,7 @@ export interface ModelResultItem {
 
 export interface ScanResponse {
   id?: string;
-  input_type: 'URL';
+  input_type: 'URL' | 'SMS' | 'EMAIL' | string;
   prediction: 'SAFE' | 'SUSPICIOUS' | 'PHISHING';
   risk_score: number;
   confidence: number;
@@ -44,7 +44,10 @@ export interface AnalyticsOverview {
   average_risk_score: number;
   distribution: {
     URL: number;
+    SMS: number;
+    EMAIL: number;
   };
+
 
 
   recent_threats?: Array<{

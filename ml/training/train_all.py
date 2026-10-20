@@ -143,11 +143,12 @@ def tune_xgboost(X_train, y_train) -> object:
 
 
 def tune_random_forest(X_train, y_train) -> object:
-    """Grid-search over key Random Forest hyper-parameters."""
+    """Grid-search over key Random Forest hyper-parameters with regularization to prevent overfitting."""
     param_grid = {
-        "n_estimators":  [150, 250],
-        "max_depth":     [15, 25],
-        "max_features":  ["sqrt"],
+        "n_estimators":     [150, 200],
+        "max_depth":        [10, 14],
+        "min_samples_leaf": [2, 4],
+        "max_features":     ["sqrt"],
     }
 
     base = RandomForestClassifier(random_state=RANDOM_STATE, n_jobs=-1)
@@ -264,6 +265,7 @@ def train_url_model(df: pd.DataFrame):
     print(f"{'MODEL':<25} {'Train F1':>10} {'Val F1':>10} {'Val AUC':>10}")
     print(f"{'─'*56}")
 
+    best_gen_score   = -1.0
     best_val_f1      = -1.0
     best_model_name  = None
     best_model_obj   = None
@@ -285,7 +287,12 @@ def train_url_model(df: pd.DataFrame):
 
         print(f"  {name:<23} {train_f1:>10.4f} {val_f1:>10.4f} {val_auc:>10.4f}")
 
-        if val_f1 > best_val_f1:
+        # Generalization penalty: penalize models with large train-val gaps (>0.05)
+        overfit_gap = max(0.0, train_f1 - val_f1)
+        gen_score = val_f1 - (overfit_gap * 0.5 if overfit_gap > 0.05 else 0.0)
+
+        if gen_score > best_gen_score:
+            best_gen_score  = gen_score
             best_val_f1     = val_f1
             best_model_name = name
             best_model_obj  = model
@@ -314,8 +321,8 @@ def train_url_model(df: pd.DataFrame):
     print("\n" + classification_report(y_test, y_test_pred, target_names=["Legitimate", "Phishing"]))
 
     train_f1_best     = results[best_model_name]["train_f1"]
-    overfitting_delta = train_f1_best - test_metrics["f1_score"]
-    is_overfitting    = overfitting_delta > 0.08
+    overfitting_delta = abs(train_f1_best - test_metrics["f1_score"])
+    is_overfitting    = (train_f1_best - test_metrics["f1_score"]) > 0.08
 
     overfitting_info = {
         "train_f1":    round(train_f1_best, 4),
@@ -355,8 +362,27 @@ def train_url_model(df: pd.DataFrame):
     with open("reports/url_test_report.json", "w") as f:
         json.dump(report, f, indent=2)
 
-    # Final summary report (top-level)
-    final_report = {"url_report": report, "generated_at": datetime.utcnow().isoformat()}
+    # Final summary report combining URL, SMS, and Email
+    sms_rep, email_rep = None, None
+    if os.path.exists("reports/sms_test_report.json"):
+        try:
+            with open("reports/sms_test_report.json") as f:
+                sms_rep = json.load(f)
+        except Exception:
+            pass
+    if os.path.exists("reports/email_test_report.json"):
+        try:
+            with open("reports/email_test_report.json") as f:
+                email_rep = json.load(f)
+        except Exception:
+            pass
+
+    final_report = {
+        "url_report": report,
+        "sms_report": sms_rep,
+        "email_report": email_rep,
+        "generated_at": datetime.utcnow().isoformat()
+    }
     with open("reports/final_model_report.json", "w") as f:
         json.dump(final_report, f, indent=2)
 

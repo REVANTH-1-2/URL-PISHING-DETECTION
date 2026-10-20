@@ -22,8 +22,15 @@ def extract_feature_contributions(model, pipeline, sample_text: str, top_k: int 
     feature_names = pipeline.feature_names_
 
     contributions = []
+    coefs = None
     if hasattr(model, "coef_"):
         coefs = model.coef_[0]
+    elif hasattr(model, "calibrated_classifiers_"):
+        coef_list = [c.estimator.coef_[0] for c in model.calibrated_classifiers_ if hasattr(c.estimator, "coef_")]
+        if coef_list:
+            coefs = np.mean(coef_list, axis=0)
+
+    if coefs is not None:
         X_arr = X_vec.toarray()[0]
         contrib_values = coefs * X_arr
         top_idx = np.argsort(contrib_values)[::-1][:top_k]

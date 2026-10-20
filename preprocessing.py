@@ -76,22 +76,23 @@ EMAIL_PATTERN = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b
 def extract_aux_features(texts: list) -> np.ndarray:
     """
     Extracts 12 handcrafted structural, lexical, and indicator features per text.
+    Counts are log-normalized to stabilize distributions and prevent length bias.
     """
     feats = []
     for t in texts:
         t_str = clean_text(str(t))
         has_url = 1.0 if URL_PATTERN.search(t_str) else 0.0
-        num_urls = float(len(URL_PATTERN.findall(t_str)))
+        num_urls = float(np.log1p(len(URL_PATTERN.findall(t_str))))
         has_urgent = 1.0 if URGENT_KEYWORDS_PATTERN.search(t_str) else 0.0
-        num_urgent = float(len(URGENT_KEYWORDS_PATTERN.findall(t_str)))
+        num_urgent = float(np.log1p(len(URGENT_KEYWORDS_PATTERN.findall(t_str))))
         has_ip = 1.0 if IP_PATTERN.search(t_str) else 0.0
         has_email = 1.0 if EMAIL_PATTERN.search(t_str) else 0.0
-        num_digits = float(sum(c.isdigit() for c in t_str))
-        num_exclamation = float(t_str.count("!"))
-        num_dollar = float(t_str.count("$"))
-        text_len = float(len(t_str))
-        word_cnt = float(len(t_str.split()))
-        upper_ratio = float(sum(1 for c in t_str if c.isupper()) / (text_len + 1e-5))
+        num_digits = float(np.log1p(sum(c.isdigit() for c in t_str)))
+        num_exclamation = float(np.log1p(t_str.count("!")))
+        num_dollar = float(np.log1p(t_str.count("$")))
+        text_len = float(np.log1p(len(t_str)))
+        word_cnt = float(np.log1p(len(t_str.split())))
+        upper_ratio = float(sum(1 for c in t_str if c.isupper()) / (len(t_str) + 1e-5))
 
         feats.append([
             has_url, num_urls, has_urgent, num_urgent, has_ip, has_email,
@@ -119,16 +120,18 @@ AUX_FEATURE_NAMES = [
 class PhishingFeaturePipeline(BaseEstimator, TransformerMixin):
     """
     Sklearn-compatible transformer that fits TF-IDF vectorization and
-    StandardScaler for handcrafted auxiliary features strictly on training data.
+    MaxAbsScaler for handcrafted auxiliary features strictly on training data.
     """
 
-    def __init__(self, ngram_range=(1, 2), min_df=1, sublinear_tf=True):
+    def __init__(self, ngram_range=(1, 2), min_df=2, sublinear_tf=True, max_features=15000):
         self.ngram_range = ngram_range
         self.min_df = min_df
         self.sublinear_tf = sublinear_tf
+        self.max_features = max_features
         self.vectorizer = TfidfVectorizer(
             ngram_range=self.ngram_range,
             min_df=self.min_df,
+            max_features=self.max_features,
             sublinear_tf=self.sublinear_tf,
             lowercase=True,
         )

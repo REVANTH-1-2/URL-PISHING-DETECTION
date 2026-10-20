@@ -16,12 +16,26 @@ def test_real_world_samples():
     print("==================================================")
 
     # Load locked SMS model & vectorizer
-    sms_model = joblib.load("ml/saved_models/sms/best_model.pkl")
-    sms_vec = joblib.load("ml/saved_models/sms/vectorizer.pkl")
+    sms_obj = joblib.load("ml/saved_models/sms/best_model.pkl")
+    if isinstance(sms_obj, dict):
+        sms_model = sms_obj["model"]
+        sms_vec = sms_obj.get("pipeline", joblib.load("ml/saved_models/sms/vectorizer.pkl"))
+        sms_th = sms_obj.get("tuned_threshold", 0.5)
+    else:
+        sms_model = sms_obj
+        sms_vec = joblib.load("ml/saved_models/sms/vectorizer.pkl")
+        sms_th = 0.5
 
     # Load locked Email model & vectorizer
-    email_model = joblib.load("ml/saved_models/email/best_model.pkl")
-    email_vec = joblib.load("ml/saved_models/email/vectorizer.pkl")
+    email_obj = joblib.load("ml/saved_models/email/best_model.pkl")
+    if isinstance(email_obj, dict):
+        email_model = email_obj["model"]
+        email_vec = email_obj.get("pipeline", joblib.load("ml/saved_models/email/vectorizer.pkl"))
+        email_th = email_obj.get("tuned_threshold", 0.5)
+    else:
+        email_model = email_obj
+        email_vec = joblib.load("ml/saved_models/email/vectorizer.pkl")
+        email_th = 0.5
 
     # Load locked URL model & scaler
     url_model = joblib.load("ml/saved_models/url/best_model.pkl")
@@ -32,23 +46,31 @@ def test_real_world_samples():
         sms_samples = json.load(f)
     print(f"\n--- Testing {len(sms_samples)} Real-World SMS Samples ---")
     for sample in sms_samples:
-        X = sms_vec.transform([sample["message"]]).toarray()
-        pred = sms_model.predict(X)[0]
-        prob = sms_model.predict_proba(X)[0][1] if hasattr(sms_model, "predict_proba") else pred
-        pred_label = "PHISHING" if prob >= 0.5 else "SAFE"
+        X = sms_vec.transform([sample["message"]])
+        prob = float(sms_model.predict_proba(X)[0][1]) if hasattr(sms_model, "predict_proba") else float(sms_model.predict(X)[0])
+        pred_label = "PHISHING" if prob >= sms_th else "SAFE"
         print(f"[{sample['id']}] Category: {sample['category']} | Expected: {sample['expected_label']} | Predicted: {pred_label} (Prob: {prob:.2f})")
+        assert pred_label == sample["expected_label"], f"SMS sample {sample['id']} prediction '{pred_label}' does not match expected '{sample['expected_label']}'"
 
     # 2. Email Real World Samples
     with open("tests/real_world_samples/email_samples.json") as f:
         email_samples = json.load(f)
     print(f"\n--- Testing {len(email_samples)} Real-World Email Samples ---")
     for sample in email_samples:
-        text = f"{sample.get('subject', '')} {sample['body']}"
-        X = email_vec.transform([text]).toarray()
-        pred = email_model.predict(X)[0]
-        prob = email_model.predict_proba(X)[0][1] if hasattr(email_model, "predict_proba") else pred
-        pred_label = "PHISHING" if prob >= 0.5 else "SAFE"
+        parts = []
+        if sample.get("sender"):
+            parts.append(f"Sender: {sample['sender']}")
+        if sample.get("subject"):
+            parts.append(f"Subject: {sample['subject']}")
+        if sample.get("body"):
+            parts.append(f"Body: {sample['body']}")
+        text = " | ".join(parts) if parts else sample.get("body", "")
+
+        X = email_vec.transform([text])
+        prob = float(email_model.predict_proba(X)[0][1]) if hasattr(email_model, "predict_proba") else float(email_model.predict(X)[0])
+        pred_label = "PHISHING" if prob >= email_th else "SAFE"
         print(f"[{sample['id']}] Category: {sample['category']} | Expected: {sample['expected_label']} | Predicted: {pred_label} (Prob: {prob:.2f})")
+        assert pred_label == sample["expected_label"], f"Email sample {sample['id']} prediction '{pred_label}' does not match expected '{sample['expected_label']}'"
 
     # 3. URL Real World Samples
     with open("tests/real_world_samples/url_samples.json") as f:
@@ -57,10 +79,10 @@ def test_real_world_samples():
     for sample in url_samples:
         feats = np.array([list(extract_url_features(sample["url"]).values())])
         X = url_scaler.transform(feats)
-        pred = url_model.predict(X)[0]
-        prob = url_model.predict_proba(X)[0][1] if hasattr(url_model, "predict_proba") else pred
+        prob = float(url_model.predict_proba(X)[0][1]) if hasattr(url_model, "predict_proba") else float(url_model.predict(X)[0])
         pred_label = "PHISHING" if prob >= 0.5 else "SAFE"
         print(f"[{sample['id']}] Category: {sample['category']} | Expected: {sample['expected_label']} | Predicted: {pred_label} (Prob: {prob:.2f})")
+        assert pred_label == sample["expected_label"], f"URL sample {sample['id']} prediction '{pred_label}' does not match expected '{sample['expected_label']}'"
 
     print("\n==================================================")
     print("REAL-WORLD SAMPLE TESTING COMPLETED SUCCESSFULLY!")

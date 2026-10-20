@@ -35,12 +35,13 @@ warnings.filterwarnings("ignore")
 
 def tune_classification_threshold(y_val, y_val_prob, target_recall=config.TARGET_MIN_RECALL):
     """
-    Tunes the classification threshold on validation data to minimize False Positive Rate (FPR)
-    while maintaining a minimum target phishing recall (default 95%).
+    Tunes the classification threshold on validation data to maximize F1-score and minimize FPR
+    while maintaining a minimum target phishing recall (default 95%, or best achievable).
     Returns: tuned_threshold, target_achieved, recall_at_th, fpr_at_th
     """
-    candidate_thresholds = np.linspace(0.01, 0.99, 100)
+    candidate_thresholds = np.linspace(0.20, 0.75, 100)
     best_th = config.DEFAULT_THRESHOLD
+    best_f1 = -1.0
     min_fpr = 1.0
     best_recall = 0.0
     target_achieved = False
@@ -56,16 +57,18 @@ def tune_classification_threshold(y_val, y_val_prob, target_recall=config.TARGET
 
         rec = float(tp / (tp + fn)) if (tp + fn) > 0 else 0.0
         fpr = float(fp / (fp + tn)) if (fp + tn) > 0 else 0.0
+        prec = float(tp / (tp + fp)) if (tp + fp) > 0 else 0.0
+        f1 = float(2 * prec * rec / (prec + rec)) if (prec + rec) > 0 else 0.0
 
         if rec >= target_recall:
-            valid_candidates.append((fpr, -rec, th))
+            valid_candidates.append((-f1, fpr, -rec, th))
             target_achieved = True
 
     if valid_candidates:
         valid_candidates.sort()
-        min_fpr = valid_candidates[0][0]
-        best_recall = -valid_candidates[0][1]
-        best_th = float(valid_candidates[0][2])
+        best_th = float(valid_candidates[0][3])
+        min_fpr = valid_candidates[0][1]
+        best_recall = -valid_candidates[0][2]
     else:
         all_candidates = []
         for th in candidate_thresholds:
@@ -74,13 +77,16 @@ def tune_classification_threshold(y_val, y_val_prob, target_recall=config.TARGET
             tn, fp, fn, tp = cm.ravel() if cm.shape == (2, 2) else (int(cm[0, 0]), 0, 0, 0)
             rec = float(tp / (tp + fn)) if (tp + fn) > 0 else 0.0
             fpr = float(fp / (fp + tn)) if (fp + tn) > 0 else 0.0
-            all_candidates.append((-rec, fpr, th))
+            prec = float(tp / (tp + fp)) if (tp + fp) > 0 else 0.0
+            f1 = float(2 * prec * rec / (prec + rec)) if (prec + rec) > 0 else 0.0
+            all_candidates.append((-f1, fpr, -rec, th))
         all_candidates.sort()
-        best_recall = -all_candidates[0][0]
+        best_th = float(all_candidates[0][3])
         min_fpr = all_candidates[0][1]
-        best_th = float(all_candidates[0][2])
+        best_recall = -all_candidates[0][2]
 
     return best_th, target_achieved, best_recall, min_fpr
+
 
 
 def compute_metrics(y_true, y_prob, threshold=0.5):
@@ -225,6 +231,8 @@ def train_sms_pipeline():
     joblib.dump(sms_package, config.SMS_MODEL_PATH)
     os.makedirs(os.path.dirname(config.ML_SAVED_SMS_PATH), exist_ok=True)
     joblib.dump(sms_package, config.ML_SAVED_SMS_PATH)
+    # Save vectorizer/pipeline separately for compatibility
+    joblib.dump(pipeline, os.path.join(os.path.dirname(config.ML_SAVED_SMS_PATH), "vectorizer.pkl"))
     print(f"[Model Saved] Saved best SMS pipeline to {config.SMS_MODEL_PATH}")
 
     # Save summary metrics JSON
@@ -252,7 +260,48 @@ def train_sms_pipeline():
     with open(config.METRICS_DIR / "sms_metrics.json", "w") as f:
         json.dump(metrics_export, f, indent=2)
 
-    print(f"[Metrics Exported] Saved SMS evaluation metrics to {config.METRICS_DIR / 'sms_metrics.json'}")
+    # Save standalone test report for API/frontend consumption
+    test_metrics = results[best_model_name]["test_tuned_metrics"]
+    train_prob = best_model_obj.predict_proba(X_train)[:, 1] if hasattr(best_model_obj, "predict_proba") else best_model_obj.predict(X_train)
+    train_f1 = float(compute_metrics(y_train, train_prob, best_tuned_threshold)["f1_score"]) / 100.0
+    val_f1 = float(results[best_model_name]["val_tuned_metrics"]["f1_score"]) / 100.0
+    test_f1 = float(test_metrics["f1_score"]) / 100.0
+
+    sms_report = {
+        "dataset": "SMS",
+        "selected_best_model": best_model_name,
+        "test_samples": len(test_df),
+        "unseen_test_metrics": {
+            "accuracy": round(test_metrics["accuracy"] / 100.0, 4),
+            "precision": round(test_metrics["precision"] / 100.0, 4),
+            "recall": round(test_metrics["recall"] / 100.0, 4),
+            "f1_score": round(test_f1, 4),
+            "roc_auc": round(test_metrics["roc_auc"], 4),
+            "specificity": round(test_metrics["specificity"] / 100.0, 4),
+            "false_positive_rate": round(test_metrics["fpr"] / 100.0, 4),
+            "false_negative_rate": round(test_metrics["fnr"] / 100.0, 4),
+            "confusion_matrix": {
+                "TN": test_metrics["tn"],
+                "FP": test_metrics["fp"],
+                "FN": test_metrics["fn"],
+                "TP": test_metrics["tp"],
+            }
+        },
+        "overfitting_analysis": {
+            "train_f1": round(train_f1, 4),
+            "val_f1": round(val_f1, 4),
+            "test_f1": round(test_f1, 4),
+            "delta": round(abs(train_f1 - test_f1), 4),
+            "is_overfitting": bool(train_f1 - test_f1 > 0.08),
+            "warning": "High train-test gap detected" if (train_f1 - test_f1 > 0.08) else None,
+        },
+        "evaluation_date": datetime.now().isoformat()
+    }
+    os.makedirs("reports", exist_ok=True)
+    with open("reports/sms_test_report.json", "w") as f:
+        json.dump(sms_report, f, indent=2)
+
+    print(f"[Metrics Exported] Saved SMS evaluation metrics to {config.METRICS_DIR / 'sms_metrics.json'} and reports/sms_test_report.json")
     return sms_package, results, (train_df, val_df, test_df)
 
 

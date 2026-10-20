@@ -41,6 +41,18 @@ async def get_analytics_overview():
     avg_res = await db.db.scans.aggregate(pipeline).to_list(1)
     avg_risk = round(avg_res[0]["avg_risk"], 1) if avg_res else 0.0
 
+    recent_cursor = db.db.scans.find({"prediction": {"$in": ["PHISHING", "SUSPICIOUS"]}}).sort("created_at", -1).limit(5)
+    recent_threats = []
+    async for doc in recent_cursor:
+        created_at = doc.get("created_at")
+        time_str = created_at.strftime("%b %d, %H:%M") if hasattr(created_at, "strftime") else "Recent"
+        recent_threats.append({
+            "type": doc.get("input_type", "URL"),
+            "prediction": doc.get("prediction", "PHISHING"),
+            "risk_score": doc.get("risk_score", 0.0),
+            "time": time_str
+        })
+
     return {
         "total_scans": total,
         "safe_scans": safe,
@@ -51,5 +63,6 @@ async def get_analytics_overview():
             "URL": url_count,
             "SMS": sms_count,
             "EMAIL": email_count,
-        }
+        },
+        "recent_threats": recent_threats
     }

@@ -66,9 +66,9 @@ def train_email_pipeline():
     models = {
         "Logistic Regression": LogisticRegression(random_state=config.RANDOM_STATE, C=1.0, max_iter=1000, solver="liblinear"),
         "Linear SVM": CalibratedClassifierCV(
-            LinearSVC(random_state=config.RANDOM_STATE, max_iter=2000, C=1.0), cv=2
+            LinearSVC(random_state=config.RANDOM_STATE, max_iter=2000, C=1.0), cv=3
         ),
-        "Random Forest": RandomForestClassifier(n_estimators=100, random_state=config.RANDOM_STATE, max_depth=10),
+        "Random Forest": RandomForestClassifier(n_estimators=100, random_state=config.RANDOM_STATE, max_depth=15, min_samples_leaf=2),
         "XGBoost": XGBClassifier(n_estimators=100, random_state=config.RANDOM_STATE, eval_metric="logloss", max_depth=4, learning_rate=0.1),
     }
 
@@ -137,6 +137,7 @@ def train_email_pipeline():
     joblib.dump(email_package, config.EMAIL_MODEL_PATH)
     os.makedirs(os.path.dirname(config.ML_SAVED_EMAIL_PATH), exist_ok=True)
     joblib.dump(email_package, config.ML_SAVED_EMAIL_PATH)
+    joblib.dump(pipeline, os.path.join(os.path.dirname(config.ML_SAVED_EMAIL_PATH), "vectorizer.pkl"))
     print(f"[Model Saved] Saved best Email pipeline to {config.EMAIL_MODEL_PATH}")
 
     # Save summary metrics JSON
@@ -164,7 +165,48 @@ def train_email_pipeline():
     with open(config.METRICS_DIR / "email_metrics.json", "w") as f:
         json.dump(metrics_export, f, indent=2)
 
-    print(f"[Metrics Exported] Saved Email evaluation metrics to {config.METRICS_DIR / 'email_metrics.json'}")
+    # Save standalone test report for API/frontend consumption
+    test_metrics = results[best_model_name]["test_tuned_metrics"]
+    train_prob = best_model_obj.predict_proba(X_train)[:, 1] if hasattr(best_model_obj, "predict_proba") else best_model_obj.predict(X_train)
+    train_f1 = float(compute_metrics(y_train, train_prob, best_tuned_threshold)["f1_score"]) / 100.0
+    val_f1 = float(results[best_model_name]["val_tuned_metrics"]["f1_score"]) / 100.0
+    test_f1 = float(test_metrics["f1_score"]) / 100.0
+
+    email_report = {
+        "dataset": "EMAIL",
+        "selected_best_model": best_model_name,
+        "test_samples": len(test_df),
+        "unseen_test_metrics": {
+            "accuracy": round(test_metrics["accuracy"] / 100.0, 4),
+            "precision": round(test_metrics["precision"] / 100.0, 4),
+            "recall": round(test_metrics["recall"] / 100.0, 4),
+            "f1_score": round(test_f1, 4),
+            "roc_auc": round(test_metrics["roc_auc"], 4),
+            "specificity": round(test_metrics["specificity"] / 100.0, 4),
+            "false_positive_rate": round(test_metrics["fpr"] / 100.0, 4),
+            "false_negative_rate": round(test_metrics["fnr"] / 100.0, 4),
+            "confusion_matrix": {
+                "TN": test_metrics["tn"],
+                "FP": test_metrics["fp"],
+                "FN": test_metrics["fn"],
+                "TP": test_metrics["tp"],
+            }
+        },
+        "overfitting_analysis": {
+            "train_f1": round(train_f1, 4),
+            "val_f1": round(val_f1, 4),
+            "test_f1": round(test_f1, 4),
+            "delta": round(abs(train_f1 - test_f1), 4),
+            "is_overfitting": bool(train_f1 - test_f1 > 0.08),
+            "warning": "High train-test gap detected" if (train_f1 - test_f1 > 0.08) else None,
+        },
+        "evaluation_date": datetime.now().isoformat()
+    }
+    os.makedirs("reports", exist_ok=True)
+    with open("reports/email_test_report.json", "w") as f:
+        json.dump(email_report, f, indent=2)
+
+    print(f"[Metrics Exported] Saved Email evaluation metrics to {config.METRICS_DIR / 'email_metrics.json'} and reports/email_test_report.json")
     return email_package, results, (train_df, val_df, test_df)
 
 

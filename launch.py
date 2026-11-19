@@ -20,7 +20,7 @@ PORT = 8000
 HEALTH_URL = f"http://{HOST}:{PORT}/api/health"
 DOCS_URL = f"http://{HOST}:{PORT}/docs"
 FRONTEND_DIR = os.path.join(PROJECT_ROOT, "frontend")
-FRONTEND_URL = "http://localhost:5173"
+FRONTEND_URL = "http://localhost:3000"
 
 
 def is_server_running(url):
@@ -84,7 +84,7 @@ def main():
 
     print("=" * 60)
     print("🎉 System Ready!")
-    print("  • Web Scanner UI: http://localhost:5173")
+    print("  • Web Scanner UI: http://localhost:3000")
     print("  • API Documentation: http://127.0.0.1:8000/docs")
     print("  (Press Ctrl+C in terminal to stop)")
     print("=" * 60)
